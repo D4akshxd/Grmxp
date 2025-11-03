@@ -1,0 +1,26 @@
+# Python
+__pycache__/
+*.py[cod]
+.venv/
+env/
+
+# Node
+node_modules/
+npm-debug.log*
+pnpm-debug.log*
+yarn-debug.log*
+dist/
+
+# Editor
+.DS_Store
+.idea/
+.vscode/
+
+# Application storage
+backend/storage/
+backend/gem_analyzer.db
+
+# Environment
+.env
+backend/.env
+frontend/.env
