@@ -1,36 +1,40 @@
-# data vis 
- extracts compliance-critical insights, packages branded summary reports, and lets teams collaborate over secure, authenticated workflows.
+# AI PDF Translator
+
+An end-to-end web application that translates uploaded PDFs into multiple languages with AI assistance. The FastAPI backend handles PDF text extraction, language-aware translations, and export bundles, while the React frontend delivers a polished workflow for choosing languages, reviewing results, and downloading artifacts.
 
 ## Features
 
-- **Automated PDF intelligence** ? detects all pdf data .
-- **Executieporting** ? generates HTML/Markdown/JSON outputs, compresses them into share-ready ZIP bundles, and offers one-click downloads and email dispatch.
-- **Modern UI/UX** ? responsive React dashboard with drag-and-drop uploads, rule tuning panel, and real-time analysis history.
-- **Authentication & security** ? JWT-based login/registration backed by hashed credentials and role-ready structure.
-- **Deployment ready** ? Docker images for FastAPI backend and Vite/React frontend with optional MailHog for SMTP testing.
+- **Instant multi-language translation** – Upload a PDF and generate translations across up to six target languages in a single run.
+- **Context-rich previews** – Inspect each translated page alongside the original source text directly in the dashboard.
+- **Downloadable bundles** – Export Markdown + JSON manifests for every translation job in a timestamped ZIP package.
+- **Persistent history** – Revisit previous translations at any time, re-open previews, and fetch bundles with one click.
+- **Secure workflow** – JWT-secured authentication, durable storage for uploads/exports, and configurable translation providers (LibreTranslate by default).
 
 ## Project structure
 
 ```
-backend/         # FastAPI service and analysis pipeline
-frontend/        # React + Vite web client
-infrastructure/  # Docker Compose environment
+backend/         # FastAPI service, translation pipeline, persistence
+frontend/        # React + Vite UI for uploads, previews, history
+infrastructure/  # Docker Compose environment for local orchestration
 ```
 
 ### Backend (FastAPI)
 
-- `app/main.py` ? application factory, CORS, routers
-- `app/routers/` ? authentication, document ingest, report/email endpoints
-- `app/services/` ? PDF parsing, NLP summariser (NLTK), report templating, email
-- `app/templates/report.html` ? Jinja2 report template rendered into ZIP exports
-- Storage paths: `storage/uploads` for raw PDFs, `storage/exports` for ZIP bundles
+- `app/main.py` – application factory, CORS setup, router registration
+- `app/routers/translations.py` – upload endpoint, supported language listing, history + bundle download
+- `app/services/translator.py` – PDF text extraction & LibreTranslate integration
+- `app/services/translation_bundle.py` – Markdown/manifest ZIP packaging
+- `app/models.py` – `TranslationJob` ORM plus user/document tables
+- Storage paths: `storage/uploads` for raw PDFs, `storage/exports/translations/<timestamp>` for generated bundles
 
 ### Frontend (React + Vite + TypeScript)
 
-- `src/pages/Login|Register|Dashboard` ? auth and main workflows
-- `src/components` ? upload widget, rule editor, analysis cards, protected layout
-- `src/hooks/useDocuments` ? fetch/upload/download/email orchestration
-- `src/styles/global.css` ? cohesive UI theme tailored for bid teams
+- `src/pages/Dashboard.tsx` – main translation workspace with upload, language picker, preview, and history
+- `src/components/LanguageSelect.tsx` – multi-select widget with selection limits
+- `src/components/TranslationViewer.tsx` – tabbed translation preview per language and per page
+- `src/components/TranslationHistory.tsx` – job history list with view/download actions
+- `src/hooks/useTranslations.ts` – orchestration hook for API calls, status flags, and downloads
+- `src/styles/global.css` – cohesive styling, including new translator-specific components
 
 ## Local development
 
@@ -46,7 +50,7 @@ infrastructure/  # Docker Compose environment
 cd backend
 python -m venv .venv && source .venv/bin/activate
 pip install -r requirements.txt
-cp .env.example .env  # adjust secrets/SMTP as needed
+cp .env.example .env  # adjust secrets/provider config as needed
 uvicorn app.main:app --reload
 ```
 
@@ -58,7 +62,7 @@ npm install
 npm run dev  # http://localhost:5173
 ```
 
-Set `VITE_API_BASE_URL` in a `.env` file (defaults to `/api/v1` when using the Vite proxy).
+Set `VITE_API_BASE_URL` in a `.env` file if you are proxying to a different backend origin (defaults to `/api/v1`).
 
 ### Integrated Docker environment
 
@@ -69,11 +73,11 @@ docker compose up --build
 
 Services:
 
-- `backend` ? FastAPI on `http://localhost:8000`
-- `frontend` ? Nginx-hosted SPA on `http://localhost:5173`
-- `mailhog` ? SMTP catcher (`smtp://localhost:1025`, UI `http://localhost:8025`)
+- `backend` – FastAPI on `http://localhost:8000`
+- `frontend` – Vite dev server (or Nginx build) on `http://localhost:5173`
+- `mailhog` – SMTP test harness (`smtp://localhost:1025`, UI `http://localhost:8025`)
 
-Override the frontend API base during builds:
+Override the frontend API base during image builds:
 
 ```bash
 docker compose build frontend --build-arg VITE_API_BASE_URL=http://localhost:8000/api/v1
@@ -83,23 +87,27 @@ docker compose build frontend --build-arg VITE_API_BASE_URL=http://localhost:800
 
 Environment variables (`backend/.env`):
 
-- `DATABASE_URL` ? default SQLite file `sqlite:///./gem_analyzer.db`
-- `JWT_SECRET_KEY` ? 32+ character secret
-- `ALLOWED_ORIGINS` ? JSON array of permitted origins for CORS
-- SMTP settings ? `SMTP_HOST`, `SMTP_PORT`, `SMTP_USERNAME`, `SMTP_PASSWORD`, `SMTP_USE_TLS`, `EMAIL_SENDER`
+- `DATABASE_URL` – default `sqlite:///./gem_analyzer.db`
+- `JWT_SECRET_KEY` – 32+ character secret
+- `ALLOWED_ORIGINS` – JSON array of permitted origins for CORS
+- `TRANSLATION_PROVIDER` – currently supports `libretranslate`
+- `LIBRETRANSLATE_URL` – base URL for the LibreTranslate instance (default `https://libretranslate.de`)
+- `LIBRETRANSLATE_API_KEY` – optional API key for secured instances
+- `TRANSLATION_CHUNK_SIZE` / `TRANSLATION_CHUNK_OVERLAP` – character limits used while chunking PDF text (defaults: 3500 / 200)
+- SMTP settings – `SMTP_HOST`, `SMTP_PORT`, `SMTP_USERNAME`, `SMTP_PASSWORD`, `SMTP_USE_TLS`, `EMAIL_SENDER`
 
-Frontend build arg: `VITE_API_BASE_URL` controls API root; defaults to `/api/v1` for same-origin proxy setups.
+Frontend build arg: `VITE_API_BASE_URL` controls the API root used by the SPA.
 
 ## Operational notes
 
-- First-run downloads NLTK tokenizers/stopwords automatically.
-- Email dispatch relies on the configured SMTP relay; use MailHog in development.
-- Generated bundles (HTML/Markdown/JSON) are timestamped and stored under `storage/exports/<timestamp>/`.
-- Extendable rule engine ? adjust default keywords or add new sections inside `app/schemas.py`.
+- LibreTranslate is the default translation engine; configure the URL to point at your own instance for higher throughput or reliability.
+- Translation bundles (Markdown + manifest) are saved under `storage/exports/translations/<timestamp>/` and exposed via `/api/v1/translations/{job_id}/download`.
+- Upload size/timeouts depend on the upstream translation service; consider introducing background jobs for very large PDFs.
+- Existing authentication and document models remain compatible with the new translation workflow.
 
 ## Roadmap ideas
 
-- Background job queue (e.g., Celery) for long-running PDF parsing
-- Multi-user organizations with role-based access
-- Advanced NLP via transformer summarizers and named entity recognition
-- Integration with GeM APIs for automated bid retrieval
+- Background worker queue for long-running translation batches
+- Additional providers (OpenAI, Azure Translator, DeepL) with automatic fallback
+- Richer preview modes (side-by-side diff, search, glossary highlighting)
+- Shared workspaces and collaboration on translation jobs

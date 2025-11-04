@@ -1,3 +1,3 @@
-from . import analysis, auth
+from . import analysis, auth, translations
 
-__all__ = ["analysis", "auth"]
+__all__ = ["analysis", "auth", "translations"]

@@ -1,5 +1,11 @@
 import { apiClient } from "./client";
-import { DocumentListResponse, RuleConfig, TokenResponse, UserResponse } from "./types";
+import {
+  TokenResponse,
+  TranslationCreateResponse,
+  TranslationJobListResponse,
+  TranslationLanguage,
+  UserResponse
+} from "./types";
 
 interface RegisterPayload {
   email: string;
@@ -23,41 +29,30 @@ export const loginUser = async (email: string, password: string): Promise<TokenR
   return response.data;
 };
 
-export const fetchDocuments = async (): Promise<DocumentListResponse> => {
-  const response = await apiClient.get<DocumentListResponse>("/documents");
+export const fetchTranslationLanguages = async (): Promise<TranslationLanguage[]> => {
+  const response = await apiClient.get<TranslationLanguage[]>("/translations/languages");
   return response.data;
 };
 
-export const analyzeDocument = async (
-  file: File,
-  ruleConfig: RuleConfig
-): Promise<{ document_id: number; analysis_id: number; status: string; summary_preview: string }> => {
+export const fetchTranslationJobs = async (): Promise<TranslationJobListResponse> => {
+  const response = await apiClient.get<TranslationJobListResponse>("/translations");
+  return response.data;
+};
+
+export const translatePdf = async (file: File, languages: string[]): Promise<TranslationCreateResponse> => {
   const formData = new FormData();
   formData.append("file", file);
-  formData.append("rule_config", JSON.stringify(ruleConfig));
+  formData.append("languages", JSON.stringify(languages));
 
-  const response = await apiClient.post("/documents/analyze", formData, {
+  const response = await apiClient.post<TranslationCreateResponse>("/translations/translate", formData, {
     headers: { "Content-Type": "multipart/form-data" }
   });
   return response.data;
 };
 
-export const downloadBundle = async (documentId: number): Promise<Blob> => {
-  const response = await apiClient.get(`/documents/${documentId}/download`, {
+export const downloadTranslationBundle = async (jobId: number): Promise<Blob> => {
+  const response = await apiClient.get(`/translations/${jobId}/download`, {
     responseType: "blob"
   });
   return response.data;
-};
-
-export const emailAnalysis = async (
-  analysisId: number,
-  recipients: string[],
-  subject?: string,
-  message?: string
-): Promise<void> => {
-  const params = new URLSearchParams();
-  params.set("recipients", recipients.join(","));
-  if (subject) params.set("subject", subject);
-  if (message) params.set("message", message);
-  await apiClient.post(`/documents/${analysisId}/email?${params.toString()}`);
 };

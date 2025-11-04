@@ -9,7 +9,7 @@ from fastapi.middleware.cors import CORSMiddleware
 from .core.config import get_settings
 from .core.database import engine
 from .models import Base
-from .routers import analysis, auth
+from .routers import analysis, auth, translations
 
 
 LOGGER = logging.getLogger("gem_analyzer")
@@ -29,6 +29,7 @@ def create_application() -> FastAPI:
 
     application.include_router(auth.router, prefix=settings.api_v1_prefix)
     application.include_router(analysis.router, prefix=settings.api_v1_prefix)
+    application.include_router(translations.router, prefix=settings.api_v1_prefix)
 
     @application.get("/health", tags=["health"])  # type: ignore[misc]
     def healthcheck() -> dict[str, Any]:
