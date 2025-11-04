@@ -1,11 +1,10 @@
-# GeM Bid Analyzer Platform
-
-Complete tender intelligence workspace that ingests Government e-Marketplace (GeM) bid PDFs, extracts compliance-critical insights, packages branded summary reports, and lets teams collaborate over secure, authenticated workflows.
+# data vis 
+ extracts compliance-critical insights, packages branded summary reports, and lets teams collaborate over secure, authenticated workflows.
 
 ## Features
 
-- **Automated PDF intelligence** ? detects technical specifications, certificates, ATC updates, BOQ/pricing, eligibility, and milestone dates using configurable keyword rules.
-- **Executive reporting** ? generates HTML/Markdown/JSON outputs, compresses them into share-ready ZIP bundles, and offers one-click downloads and email dispatch.
+- **Automated PDF intelligence** ? detects all pdf data .
+- **Executieporting** ? generates HTML/Markdown/JSON outputs, compresses them into share-ready ZIP bundles, and offers one-click downloads and email dispatch.
 - **Modern UI/UX** ? responsive React dashboard with drag-and-drop uploads, rule tuning panel, and real-time analysis history.
 - **Authentication & security** ? JWT-based login/registration backed by hashed credentials and role-ready structure.
 - **Deployment ready** ? Docker images for FastAPI backend and Vite/React frontend with optional MailHog for SMTP testing.
