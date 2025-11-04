@@ -41,6 +41,9 @@ class Document(Base):
 
     owner: Mapped[User] = relationship(back_populates="documents")
     analyses: Mapped[List["AnalysisReport"]] = relationship(back_populates="document", cascade="all, delete-orphan")
+    translations: Mapped[List["TranslationJob"]] = relationship(
+        back_populates="document", cascade="all, delete-orphan"
+    )
 
 
 class AnalysisReport(Base):
@@ -58,3 +61,17 @@ class AnalysisReport(Base):
     emailed_to: Mapped[Optional[List[str]]] = mapped_column(JSON, default=list)
 
     document: Mapped[Document] = relationship(back_populates="analyses")
+
+
+class TranslationJob(Base):
+    __tablename__ = "translation_jobs"
+
+    id: Mapped[int] = mapped_column(Integer, primary_key=True)
+    document_id: Mapped[int] = mapped_column(ForeignKey("documents.id", ondelete="CASCADE"), nullable=False, index=True)
+    created_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), default=datetime.utcnow)
+    status: Mapped[str] = mapped_column(String(64), default="pending")
+    target_languages: Mapped[List[str]] = mapped_column(JSON, default=list)
+    translations: Mapped[Dict[str, Any]] = mapped_column(JSON, default=dict)
+    export_path: Mapped[Optional[str]] = mapped_column(String(512), nullable=True)
+
+    document: Mapped[Document] = relationship(back_populates="translations")

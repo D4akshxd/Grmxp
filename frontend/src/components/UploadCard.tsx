@@ -21,8 +21,8 @@ export const UploadCard: React.FC<UploadCardProps> = ({ onSelect, isUploading })
     <div className="card upload-card">
       <div className="card__header">
         <div>
-          <h2>Upload Tender Pack</h2>
-          <p>Drop in the official GeM bid PDF and let the platform create a compliance digest.</p>
+          <h2>Upload PDF for translation</h2>
+          <p>Drop in any PDF and the AI will deliver fluent translations in your selected languages.</p>
         </div>
       </div>
       <div className="upload-card__body" onClick={triggerPicker} role="presentation">
@@ -35,8 +35,10 @@ export const UploadCard: React.FC<UploadCardProps> = ({ onSelect, isUploading })
           disabled={isUploading}
         />
         <div className="upload-card__dropzone">
-          <span className="upload-card__icon">??</span>
-          <p className="upload-card__title">Drag & drop your GeM bid PDF</p>
+          <span className="upload-card__icon" aria-hidden>
+            🗎
+          </span>
+          <p className="upload-card__title">Drag & drop your PDF document</p>
           <p className="upload-card__subtitle">or click to browse files (max 100MB)</p>
           <button type="button" className="btn" disabled={isUploading}>
             {isUploading ? "Uploading..." : "Select PDF"}

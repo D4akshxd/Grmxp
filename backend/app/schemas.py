@@ -104,3 +104,50 @@ class AnalysisCreateResponse(BaseModel):
 
 class ExportResponse(BaseModel):
     download_url: str
+
+
+class TranslationLanguage(BaseModel):
+    code: str
+    name: str
+
+
+class TranslationPage(BaseModel):
+    page_number: int
+    original_text: str
+    translated_text: str
+
+
+class TranslationOutput(BaseModel):
+    language_code: str
+    language_name: str
+    pages: List[TranslationPage]
+    full_text: str
+    word_count: int
+    character_count: int
+
+
+class TranslationJobRead(BaseModel):
+    id: int
+    document_id: int
+    document_name: str
+    created_at: datetime
+    status: str
+    target_languages: List[str]
+    translations: List[TranslationOutput]
+    download_url: Optional[str] = None
+
+    class Config:
+        orm_mode = True
+
+
+class TranslationJobListResponse(BaseModel):
+    items: List[TranslationJobRead]
+    total: int
+
+
+class TranslationCreateResponse(BaseModel):
+    document_id: int
+    job_id: int
+    status: str
+    translations: List[TranslationOutput]
+    download_url: Optional[str]

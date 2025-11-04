@@ -10,28 +10,28 @@ export const DashboardLayout: React.FC<PropsWithChildren> = ({ children }) => {
     <div className="layout">
       <aside className="sidebar">
         <div className="sidebar__brand">
-          <span className="sidebar__logo">GeM</span>
-          <span className="sidebar__title">Bid Analyzer</span>
+          <span className="sidebar__logo">AI</span>
+          <span className="sidebar__title">PDF Translator</span>
         </div>
         <nav className="sidebar__nav">
           <Link to="/" className="sidebar__link">
             Dashboard
           </Link>
           <a
-            href="https://gem.gov.in/"
+            href="https://libretranslate.com/"
             target="_blank"
             rel="noreferrer"
             className="sidebar__link sidebar__link--secondary"
           >
-            GeM Portal
+            LibreTranslate
           </a>
         </nav>
       </aside>
       <div className="main">
         <header className="topbar">
           <div>
-            <h1 className="topbar__title">Tender Intelligence</h1>
-            <p className="topbar__subtitle">Smart summaries, compliance insights, and collaboration tools</p>
+            <h1 className="topbar__title">AI PDF Translator</h1>
+            <p className="topbar__subtitle">Translate complex documents across languages in moments.</p>
           </div>
           <div className="topbar__account">
             <div className="topbar__avatar">{user?.email[0]?.toUpperCase()}</div>

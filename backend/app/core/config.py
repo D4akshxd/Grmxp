@@ -22,6 +22,12 @@ class Settings(BaseSettings):
 
     allowed_origins: List[str] = Field(default_factory=lambda: ["*"], env="ALLOWED_ORIGINS")
 
+    translation_provider: str = Field(default="libretranslate", env="TRANSLATION_PROVIDER")
+    libretranslate_url: str = Field(default="https://libretranslate.de", env="LIBRETRANSLATE_URL")
+    libretranslate_api_key: Optional[str] = Field(default=None, env="LIBRETRANSLATE_API_KEY")
+    translation_chunk_size: int = Field(default=3500, env="TRANSLATION_CHUNK_SIZE")
+    translation_chunk_overlap: int = Field(default=200, env="TRANSLATION_CHUNK_OVERLAP")
+
     smtp_host: str = Field(default="smtp.example.com", env="SMTP_HOST")
     smtp_port: int = Field(default=587, env="SMTP_PORT")
     smtp_username: Optional[str] = Field(default=None, env="SMTP_USERNAME")

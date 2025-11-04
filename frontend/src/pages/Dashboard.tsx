@@ -1,74 +1,113 @@
-import { useState } from "react";
+import { useEffect, useMemo, useState } from "react";
+import toast from "react-hot-toast";
 
-import { defaultRuleConfig, RuleConfig } from "../api/types";
-import { DocumentCard } from "../components/DocumentCard";
-import { RuleConfigForm } from "../components/RuleConfigForm";
+import { TranslationJob, TranslationOutput } from "../api/types";
+import { LanguageSelect } from "../components/LanguageSelect";
+import { TranslationHistory } from "../components/TranslationHistory";
+import { TranslationViewer } from "../components/TranslationViewer";
 import { UploadCard } from "../components/UploadCard";
 import { DashboardLayout } from "../components/layout/DashboardLayout";
-import { useDocuments } from "../hooks/useDocuments";
+import { useTranslations } from "../hooks/useTranslations";
 
 export const DashboardPage: React.FC = () => {
-  const [ruleConfig, setRuleConfig] = useState<RuleConfig>(defaultRuleConfig);
+  const {
+    languages,
+    jobs,
+    isLoadingJobs,
+    isLoadingLanguages,
+    isUploading,
+    translate,
+    download
+  } = useTranslations();
   const [selectedFile, setSelectedFile] = useState<File | null>(null);
-  const { documents, isLoading, isUploading, upload, download, email } = useDocuments();
+  const [selectedLanguages, setSelectedLanguages] = useState<string[]>([]);
+  const [activeTranslations, setActiveTranslations] = useState<TranslationOutput[]>([]);
+  const [activeJobId, setActiveJobId] = useState<number | null>(null);
 
-  const handleUpload = async () => {
-    if (!selectedFile) return;
-    await upload(selectedFile, ruleConfig);
-    setSelectedFile(null);
+  const sortedLanguages = useMemo(
+    () => [...languages].sort((a, b) => a.name.localeCompare(b.name)),
+    [languages]
+  );
+
+  useEffect(() => {
+    if (sortedLanguages.length > 0 && selectedLanguages.length === 0) {
+      setSelectedLanguages([sortedLanguages[0].code]);
+    }
+  }, [sortedLanguages, selectedLanguages.length]);
+
+  useEffect(() => {
+    if (!activeTranslations.length && jobs.length > 0) {
+      setActiveTranslations(jobs[0].translations);
+      setActiveJobId(jobs[0].id);
+    }
+  }, [jobs, activeTranslations.length]);
+
+  const handleTranslate = async () => {
+    if (!selectedFile) {
+      toast.error("Select a PDF to translate.");
+      return;
+    }
+    if (selectedLanguages.length === 0) {
+      toast.error("Pick at least one target language.");
+      return;
+    }
+
+    try {
+      const response = await translate(selectedFile, selectedLanguages);
+      setActiveTranslations(response.translations);
+      setActiveJobId(response.job_id);
+      setSelectedFile(null);
+    } catch (error) {
+      // Notification handled inside the hook
+    }
+  };
+
+  const handleSelectJob = (job: TranslationJob) => {
+    setActiveTranslations(job.translations);
+    setActiveJobId(job.id);
   };
 
   return (
     <DashboardLayout>
       <div className="grid">
         <div className="grid__col">
-          <UploadCard
-            onSelect={(file) => setSelectedFile(file)}
-            isUploading={isUploading}
+          <UploadCard onSelect={setSelectedFile} isUploading={isUploading} />
+
+          <LanguageSelect
+            languages={sortedLanguages}
+            selected={selectedLanguages}
+            onChange={setSelectedLanguages}
+            isLoading={isLoadingLanguages}
+            disabled={isUploading}
           />
+
           {selectedFile && (
             <div className="card card--inline">
               <div className="card__header">
                 <div>
-                  <h3>Ready to analyze</h3>
+                  <h3>Ready to translate</h3>
                   <p>{selectedFile.name}</p>
                 </div>
-                <button className="btn" onClick={handleUpload} disabled={isUploading}>
-                  {isUploading ? "Processing..." : "Run analysis"}
+                <button className="btn" onClick={handleTranslate} disabled={isUploading}>
+                  {isUploading ? "Translating..." : "Translate PDF"}
                 </button>
               </div>
-              <p className="card__note">The PDF will be parsed, summarized, and packaged with your rule set.</p>
+              <p className="card__note">
+                {selectedLanguages.length} language(s) selected. Larger files may take a little longer to process.
+              </p>
             </div>
           )}
-          <RuleConfigForm value={ruleConfig} onChange={setRuleConfig} />
         </div>
 
         <div className="grid__col">
-          <div className="card">
-            <div className="card__header">
-              <div>
-                <h2>Recent analyses</h2>
-                <p>Track every bid package your team has processed.</p>
-              </div>
-              <span className="badge">{documents.length}</span>
-            </div>
-            {isLoading ? (
-              <p>Loading documents...</p>
-            ) : documents.length === 0 ? (
-              <p>No tenders processed yet. Upload your first PDF to get started.</p>
-            ) : (
-              <div className="document-list">
-                {documents.map((doc) => (
-                  <DocumentCard
-                    key={doc.id}
-                    document={doc}
-                    onDownload={download}
-                    onEmail={email}
-                  />
-                ))}
-              </div>
-            )}
-          </div>
+          <TranslationViewer translations={activeTranslations} />
+          <TranslationHistory
+            jobs={jobs}
+            isLoading={isLoadingJobs}
+            onView={handleSelectJob}
+            onDownload={download}
+            activeJobId={activeJobId}
+          />
         </div>
       </div>
     </DashboardLayout>

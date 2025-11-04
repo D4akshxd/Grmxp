@@ -11,79 +11,46 @@ export interface UserResponse {
   created_at: string;
 }
 
-export interface SectionInsight {
-  title: string;
-  summary: string;
-  importance_score: number;
-  keywords_found: string[];
+export interface TranslationLanguage {
+  code: string;
+  name: string;
 }
 
-export interface AnalysisResult {
-  document_id: number;
-  analysis_id: number;
-  summary: string;
-  highlights: Record<string, string>;
-  sections: Record<string, SectionInsight>;
-  created_at: string;
+export interface TranslationPage {
+  page_number: number;
+  original_text: string;
+  translated_text: string;
 }
 
-export interface DocumentRecord {
+export interface TranslationOutput {
+  language_code: string;
+  language_name: string;
+  pages: TranslationPage[];
+  full_text: string;
+  word_count: number;
+  character_count: number;
+}
+
+export interface TranslationJob {
   id: number;
-  original_filename: string;
-  uploaded_at: string;
+  document_id: number;
+  document_name: string;
+  created_at: string;
   status: string;
-  latest_analysis?: AnalysisResult | null;
+  target_languages: string[];
+  translations: TranslationOutput[];
+  download_url?: string | null;
 }
 
-export interface DocumentListResponse {
-  items: DocumentRecord[];
+export interface TranslationJobListResponse {
+  items: TranslationJob[];
   total: number;
 }
 
-export interface RuleSectionConfig {
-  enabled: boolean;
-  keywords: string[];
-  min_confidence: number;
+export interface TranslationCreateResponse {
+  document_id: number;
+  job_id: number;
+  status: string;
+  translations: TranslationOutput[];
+  download_url?: string | null;
 }
-
-export interface RuleConfig {
-  technical_specifications: RuleSectionConfig;
-  certificates: RuleSectionConfig;
-  atc_documents: RuleSectionConfig;
-  boq: RuleSectionConfig;
-  eligibility: RuleSectionConfig;
-  important_dates: RuleSectionConfig;
-}
-
-export const defaultRuleConfig: RuleConfig = {
-  technical_specifications: {
-    enabled: true,
-    keywords: ["specification", "technical", "compliance"],
-    min_confidence: 0.2
-  },
-  certificates: {
-    enabled: true,
-    keywords: ["certificate", "certification", "iso"],
-    min_confidence: 0.2
-  },
-  atc_documents: {
-    enabled: true,
-    keywords: ["atc", "terms", "conditions", "amendment"],
-    min_confidence: 0.2
-  },
-  boq: {
-    enabled: true,
-    keywords: ["bill of quantity", "boq", "pricing", "rate"],
-    min_confidence: 0.2
-  },
-  eligibility: {
-    enabled: true,
-    keywords: ["eligibility", "experience", "turnover"],
-    min_confidence: 0.2
-  },
-  important_dates: {
-    enabled: true,
-    keywords: ["bid end", "submission", "opening"],
-    min_confidence: 0.2
-  }
-};
